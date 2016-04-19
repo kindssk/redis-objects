@@ -15,15 +15,16 @@ class Redis
         # method, so it can be used alongside ActiveRecord, DataMapper, etc.
         def sorted_set(name, options={})
           redis_objects[name.to_sym] = options.merge(:type => :sorted_set)
-
           mod = Module.new do
             define_method(name) do
-              instance_variable_get("@#{name}") or
-                instance_variable_set("@#{name}",
-                  Redis::SortedSet.new(
-                    redis_field_key(name), redis_field_redis(name), redis_options(name)
-                  )
-                )
+              redis = Redis::SortedSet.new(redis_field_key(name) , redis_field_redis(name), redis_options(name))
+              key = redis_field_key(name)
+              unless redis.exists?
+                yield(send(self.class.redis_id_field)).each do |ev|
+                  redis.add(ev.id, ev.created_at.to_i)
+                end
+              end
+              redis
             end
           end
 
