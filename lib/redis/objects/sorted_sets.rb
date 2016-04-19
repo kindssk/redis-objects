@@ -17,14 +17,23 @@ class Redis
           redis_objects[name.to_sym] = options.merge(:type => :sorted_set)
           mod = Module.new do
             define_method(name) do
-              redis = Redis::SortedSet.new(redis_field_key(name) , redis_field_redis(name), redis_options(name))
-              key = redis_field_key(name)
-              unless redis.exists?
-                yield(send(self.class.redis_id_field)).each do |ev|
-                  redis.add(ev.id, ev.created_at.to_i)
+              unless block_given?
+                instance_variable_get("@#{name}") or
+                  instance_variable_set("@#{name}",
+                    Redis::SortedSet.new(
+                      redis_field_key(name), redis_field_redis(name), redis_options(name)
+                    )
+                  )
+              else
+                redis = Redis::SortedSet.new(redis_field_key(name) , redis_field_redis(name), redis_options(name))
+                key = redis_field_key(name)
+                unless redis.exists?
+                  yield(send(self.class.redis_id_field)).each do |ev|
+                    redis.add(ev.id, ev.created_at.to_i)
+                  end
                 end
+                redis
               end
-              redis
             end
           end
 
