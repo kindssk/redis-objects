@@ -27,6 +27,7 @@ class Redis
               else
                 redis = Redis::SortedSet.new(redis_field_key(name) , redis_field_redis(name), redis_options(name))
                 unless redis.exists?
+                  redis.add(0, 3000000000.0000000)
                   yield(send(self.class.redis_id_field)).each do |ev|
                     redis.add(ev.id, ev.created_at.to_i)
                   end
