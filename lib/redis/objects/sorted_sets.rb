@@ -26,7 +26,6 @@ class Redis
                   )
               else
                 redis = Redis::SortedSet.new(redis_field_key(name) , redis_field_redis(name), redis_options(name))
-                key = redis_field_key(name)
                 unless redis.exists?
                   yield(send(self.class.redis_id_field)).each do |ev|
                     redis.add(ev.id, ev.created_at.to_i)
