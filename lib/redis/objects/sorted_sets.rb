@@ -17,13 +17,14 @@ class Redis
           redis_objects[name.to_sym] = options.merge(:type => :sorted_set)
           mod = Module.new do
             define_method(name) do
-              unless block_given?
+              if !block_given?
                 instance_variable_get("@#{name}") or
                   instance_variable_set("@#{name}",
                     Redis::SortedSet.new(
                       redis_field_key(name), redis_field_redis(name), redis_options(name)
                     )
                   )
+              elsif options[:customize]
               else
                 redis = Redis::SortedSet.new(redis_field_key(name) , redis_field_redis(name), redis_options(name))
                 unless redis.exists?
