@@ -25,7 +25,7 @@ class Redis
                     )
                   )
               elsif options[:customize]
-                yield
+                yield(send(self.class.redis_id_field))
               else
                 redis = Redis::SortedSet.new(redis_field_key(name) , redis_field_redis(name), redis_options(name))
                 unless redis.exists?
