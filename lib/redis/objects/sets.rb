@@ -18,12 +18,22 @@ class Redis
 
           mod = Module.new do
             define_method(name) do
-              instance_variable_get("@#{name}") or
-                instance_variable_set("@#{name}",
-                  Redis::Set.new(
-                    redis_field_key(name), redis_field_redis(name), redis_options(name)
+              if !block_given?
+                instance_variable_get("@#{name}") or
+                  instance_variable_set("@#{name}",
+                    Redis::Set.new(
+                      redis_field_key(name), redis_field_redis(name), redis_options(name)
+                    )
                   )
-                )
+              else
+                redis = Redis::Set.new(redis_field_key(name) , redis_field_redis(name), redis_options(name))
+                unless redis.exists?
+                  yield(send(self.class.redis_id_field)).each do |ev|
+                    redis << ev
+                  end
+                end
+                redis
+              end
             end
           end
 
