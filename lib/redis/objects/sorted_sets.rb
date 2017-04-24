@@ -33,8 +33,7 @@ class Redis
                 unless redis.exists?
                   redis.add(0, 3000000000.0000000)
                   yield(send(self.class.redis_id_field)).each do |ev|
-                    score_by = options[:score_by].blank? ? :created_at : options[:score_by]
-                    redis.add(ev.id, ev.send(score_by).to_i)
+                    redis.add(ev[:member], ev[:score].to_i)
                   end
                 end
                 redis
